@@ -1,0 +1,41 @@
+version: '3'
+
+#Docker Compose file for building and deploying one or more .NET Core Microservice in a Developer environment. For Production Docker Swarm or Kubernetes will be required.
+
+services:
+  communication: #Container name for this particular Microservice. It can be changed to reflect the specific name for the Microservice
+    image: creditone/communication:1.1
+    container_name: communication
+    stdin_open: true
+    tty: true
+    build:
+      context: ./src/
+      dockerfile: Communication.Dockerfile #Replace microservice with the specific Dockerfile for the microservice
+    ports:
+      - '4082:443' #Left side port number will be used to access the Container: Right Side port number corresponds to the port used inside the container, don't change it.
+      - '8082:80'
+    environment:
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - Kestrel__Certificates__Default__Path=/root/.dotnet/https/cert-aspnetcore.pfx
+      - Kestrel__Certificates__Default__Password=ufo #Password for the certificate, best practice is to replace with a secret containing this value
+    volumes:
+      - ./certs:/root/.dotnet/https #Replace ./certs with the real location of the certificates
+
+  suppressiongroup:
+    image: creditone/suppressiongroup:1.1
+    container_name: suppressiongroup
+    build:
+      context: ./src/
+      dockerfile: SuppressionGroup.Dockerfile
+    ports:
+      - '4083:443'
+      - '8083:80'
+    environment:
+      - ClientUri=https://communication/
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+      - Kestrel__Certificates__Default__Path=/root/.dotnet/https/cert-aspnetcore.pfx
+      - Kestrel__Certificates__Default__Password=ufo #Password for the certificate, best practice is to replace with a secret containing this value
+    volumes:
+      - ./certs:/root/.dotnet/https #Replace ./certs with the real location of the certificates
+    depends_on:
+      - communication

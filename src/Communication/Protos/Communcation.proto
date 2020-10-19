@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcServer";
+
+service CommunicationGrpc {
+	rpc GetChannelById (CommunicationChannelRequest) returns (CommunicationModel);
+	rpc GetAllStream (CommunicationRequest) returns (stream CommunicationModel);
+	rpc GetAllChannels (CommunicationRequest) returns (CommunicationResponse);
+}
+
+message CommunicationRequest{
+
+}
+
+message CommunicationResponse{
+	repeated CommunicationModel response = 1;
+	int32 total = 2;
+}
+
+message CommunicationChannelRequest {
+	int32 channelId = 1;
+}
+
+message CommunicationModel {
+	int32 channelId = 1;
+	string channel = 2;
+}
